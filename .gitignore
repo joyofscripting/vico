@@ -1,0 +1,5 @@
+.DS_Store
+vico_settings.json
+node_modules/
+output/
+venv/
