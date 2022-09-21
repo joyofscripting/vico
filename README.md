@@ -17,7 +17,7 @@ botelo currently supports:
 * pyperclip 1.8.2 (and higher)
 * PySimpleGUI 4.60.3 (and higher)
 
-![vico](http://www.schoolscout24.de/img/vico/vico_gui.png).
+![vico](http://www.schoolscout24.de/img/vico/vico_gui.png?).
 
 ## Background
 In my daily job as a data analyst I often get list of text items from business which I need to use in my programming or SQL code. Sometimes I get a long list of ids, sometimes a long list of artist or band names.
@@ -42,7 +42,7 @@ If you are an advanced user and use Windows then you can also create a vico.exe 
 ## Presets
 vico will let you create presets with your favourite transform settings. You can also set a surrounding text for the transformed text in a preset:
 
-![vico - Example of surrounding text in a preset](http://www.schoolscout24.de/img/vico/vico_sur_text.png).
+![vico - Example of surrounding text in a preset](http://www.schoolscout24.de/img/vico/vico_sur_text.png?).
 
 Use the format code "{0}" to specify where the transformed text should be placed.
 
