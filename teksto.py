@@ -2,6 +2,19 @@ import os
 import uuid
 
 
+class TextTransformerError(Exception):
+    """Raised when a text transformation fails.
+
+    Args:
+        message (str): Human readable string describing the exception.
+
+    Attributes:
+        message (str): Human readable string describing the exception.
+    """
+    def __init__(self, message):
+        self.message = message
+
+
 class TransformSettingsPreset(object):
     """
     Keeps together an instance of a TransformSettings object and a name.
@@ -30,13 +43,14 @@ class TransformSettingsPreset(object):
         """
         name = dict_rep['name']
         ts_dict = dict_rep['transform_settings']
-        transform_settings = TransformSettings(prefix=ts_dict['prefix'],
-                                               suffix=ts_dict['suffix'],
-                                               delimiter=ts_dict['delimiter'],
-                                               line_up=ts_dict['line_up'],
-                                               quote_text=ts_dict['quote_text'],
-                                               quote_char=ts_dict['quote_char'],
-                                               escape_char=ts_dict['escape_char'])
+        transform_settings = TransformSettings(prefix=ts_dict.get('prefix', ''),
+                                               suffix=ts_dict.get('suffix', ''),
+                                               delimiter=ts_dict.get('delimiter', ''),
+                                               line_up=ts_dict.get('line_up', False),
+                                               quote_text=ts_dict.get('quote_text', False),
+                                               quote_char=ts_dict.get('quote_char', None),
+                                               escape_char=ts_dict.get('escape_char', None),
+                                               surrounding_text=ts_dict.get('surrounding_text', None))
         tsp = TransformSettingsPreset(name, transform_settings)
         return tsp
 
@@ -69,7 +83,8 @@ class TransformSettingsPreset(object):
                                                     'line_up': self._transform_settings.line_up,
                                                     'quote_text': self._transform_settings.quote_text,
                                                     'quote_char': self._transform_settings.quote_char,
-                                                    'escape_char': self._transform_settings.escape_char
+                                                    'escape_char': self._transform_settings.escape_char,
+                                                    'surrounding_text': self._transform_settings.surrounding_text
                                               }
                    }
         return dict_rep
@@ -111,8 +126,10 @@ class TransformSettings(object):
         quote_text (bool): Should the text containing the text items be quoted?
         quote_char (str): The character to be quoted.
         escape_char (str): The escape character to be used to quote quote_char.
+        surrounding_text (str): The surrounding text where the transformed text should be placed in.
     """
-    def __init__(self, prefix, suffix, delimiter, line_up=False, quote_text=False, quote_char=None, escape_char=None):
+    def __init__(self, prefix, suffix, delimiter, line_up=False,
+                 quote_text=False, quote_char=None, escape_char=None, surrounding_text=None):
         """
         Initializes a new instance of a TransformSettings object.
 
@@ -124,6 +141,8 @@ class TransformSettings(object):
             quote_text (bool): Should the text containing the text items be quoted? Default is False.
             quote_char (str): The character to be quoted. Default is None
             escape_char (str): The escape character to be used to quote quote_char. Default is None.
+            surrounding_text (str): The surrounding text where the transformed text should be placed in.
+                Default is None.
         """
         self._prefix = prefix or ''
         self._suffix = suffix or ''
@@ -132,6 +151,7 @@ class TransformSettings(object):
         self._quote_text = quote_text
         self._quote_char = quote_char
         self._escape_char = escape_char
+        self._surrounding_text = surrounding_text
 
     @property
     def prefix(self):
@@ -189,6 +209,14 @@ class TransformSettings(object):
     def escape_char(self, escape_char):
         self._escape_char = escape_char
 
+    @property
+    def surrounding_text(self):
+        return self._surrounding_text
+
+    @surrounding_text.setter
+    def surrounding_text(self, surrounding_text):
+        self._surrounding_text = surrounding_text
+
 
 class TextTransformer(object):
     """
@@ -237,6 +265,7 @@ class TextTransformer(object):
         lines = self._place_suffix(lines)
         lines = self._place_delimiter(lines)
         transformed_text = self._concatenate(lines)
+        transformed_text = self._surroundwithtext(transformed_text)
 
         return transformed_text
 
@@ -329,4 +358,27 @@ class TextTransformer(object):
             newline_char = ' '
 
         transformed_text = newline_char.join(lines)
+        return transformed_text
+
+    def _surroundwithtext(self, transformed_text):
+        """
+        Places the transformed into the surrounding text in case it was specified during initialization.
+
+        Args:
+            transformed_text (str): The already transformed text.
+
+        Returns:
+            If no surrounding text was specified during initialization the transformed text is returned.
+            Otherwise the combination of the transformed text within the surrounding text is returned.
+
+        Raises:
+            TextTransformerError if formatting the text throws an exception.
+        """
+        if self._transform_settings.surrounding_text:
+            try:
+                transformed_text = self._transform_settings.surrounding_text.format(transformed_text)
+            except IndexError as e:
+                errmsg = "The format of the surrounding text seems to be broken: {0}".format(str(e))
+                raise TextTransformerError(errmsg)
+
         return transformed_text

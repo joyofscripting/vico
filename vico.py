@@ -29,6 +29,10 @@ def main():
         if event == 'btn_clear_text_input':
             ui.clicked_clear_text_input(window)
 
+        # User clicked the "Quote text" checkbox
+        if event == 'chk_quote_text':
+            ui.clicked_quote_text_checkbox(values, window)
+
         # User clicked on an item in the listbox displaying the presets,
         # so we need to update the display transform settings accordingly
         if event == 'lbx_presets':

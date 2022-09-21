@@ -17,7 +17,7 @@ botelo currently supports:
 * pyperclip 1.8.2 (and higher)
 * PySimpleGUI 4.60.3 (and higher)
 
-![Benjamin Bannekat](http://www.schoolscout24.de/img/vico/vico_gui.png).
+![vico](http://www.schoolscout24.de/img/vico/vico_gui.png).
 
 ## Background
 In my daily job as a data analyst I often get list of text items from business which I need to use in my programming or SQL code. Sometimes I get a long list of ids, sometimes a long list of artist or band names.
@@ -40,7 +40,23 @@ I recommend the following approach:
 If you are an advanced user and use Windows then you can also create a vico.exe with the help of [auto-py-to-exe](https://pypi.org/project/auto-py-to-exe/). That is how I use it on my work laptop. If you are currently using macOS Monterey then please note that there is currently a [bug](https://github.com/PySimpleGUI/PySimpleGUI/issues/4900), which results in PySimpleGUI displaying a black window.
 
 ## Presets
-vico will let you create presets with your favourite transform settings. Those presets are loaded during application start and saved when the application quits. They are located in a JSON file named vico_settings.json.
+vico will let you create presets with your favourite transform settings. You can also set a surrounding text for the transformed text in a preset:
+
+![vico - Example of surrounding text in a preset](http://www.schoolscout24.de/img/vico/vico_sur_text.png).
+
+Use the format code "{0}" to specify where the transformed text should be placed.
+
+The presets are loaded during application start and saved when the application quits. They are located in a JSON file named vico_settings.json.
+
+
 
 ## Yes, vico trims every line!
 Currently vico trims whitespace from every line. So don't be surprised about that. Maybe I will make trimming optional in the future. Who knows.
+
+## History
+
+### Version 1.0.1 (2022-09-21)
+* Now you can also include a surrounding text in presets
+
+### Initial version (2022-09-05)
+The initial version featuring presets was released.

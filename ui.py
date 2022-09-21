@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import pyperclip
-from teksto import TransformSettings, TransformSettingsPreset, TextTransformer
+from teksto import TransformSettings, TransformSettingsPreset, TextTransformer, TextTransformerError
 
 MOVE_DIRECTION_UP = 'UP'
 MOVE_DIRECTION_DOWN = 'DOWN'
@@ -21,25 +21,37 @@ def prepare_main_window(window_title, prefs):
 
     # Frame layout for the "Text input" frame
     fl_text_input = [
-        [sg.Multiline(clipboard_content, size=(60, 10), key='fld_clipboard_content')],
+        [sg.Multiline(clipboard_content, size=(60, 8), key='fld_clipboard_content')],
         [sg.Button('Copy from clipboard', key='btn_copy_from_clipboard'),
          sg.Button('Clear', key='btn_clear_text_input')]
     ]
 
     # Frame layout for the "Transform options" frame
     fl_transform_options = [
-        [sg.Text('Prefix', size=(9, 1)), sg.InputText(default_text=prefs.selected_transform_settings.prefix,
-                                                      key='prefix')],
-        [sg.Text('Suffix', size=(9, 1)), sg.InputText(default_text=prefs.selected_transform_settings.suffix,
-                                                      key='suffix')],
-        [sg.Text('Delimiter', size=(9, 1)), sg.InputText(default_text=prefs.selected_transform_settings.delimiter,
-                                                         key='delimiter')],
-        [sg.Checkbox('Line up', default=prefs.selected_transform_settings.line_up, key='chk_line_up')],
-        [sg.Checkbox('Quote text', default=prefs.selected_transform_settings.quote_text, key='chk_quote_text'),
-         sg.Text('Quote char'), sg.InputText(default_text=prefs.selected_transform_settings.quote_char, size=(5, 1),
+        [sg.Text('Prefix', size=(9, 1)),
+         sg.InputText(default_text=prefs.selected_transform_settings.prefix,
+                      key='prefix',
+                      size=(5, 1)),
+         sg.Checkbox('Line up', default=prefs.selected_transform_settings.line_up, key='chk_line_up')],
+        [sg.Text('Suffix', size=(9, 1)),
+         sg.InputText(default_text=prefs.selected_transform_settings.suffix,
+                      key='suffix', size=(5, 1)),
+         sg.Checkbox('Quote text',
+                     default=prefs.selected_transform_settings.quote_text,
+                     key='chk_quote_text',
+                     enable_events=True)],
+        [sg.Text('Delimiter', size=(9, 1)),
+         sg.InputText(default_text=prefs.selected_transform_settings.delimiter,
+                      key='delimiter', size=(5, 1)),
+         sg.Text('Quote char'), sg.InputText(default_text=prefs.selected_transform_settings.quote_char,
+                                             size=(5, 1),
                                              key='fld_quote_char'),
-         sg.Text('Escape char'), sg.InputText(default_text=prefs.selected_transform_settings.escape_char, size=(5, 1),
-                                              key='fld_escape_char')]
+         sg.Text('Escape char'), sg.InputText(default_text=prefs.selected_transform_settings.escape_char,
+                                              size=(5, 1),
+                                              key='fld_escape_char')
+         ],
+        [sg.Text('Surrounding text')],
+        [sg.Multiline('', size=(55, 3), key='fld_surrounding_text')]
     ]
 
     # Frame layout for the "Presets" frame
@@ -54,7 +66,7 @@ def prepare_main_window(window_title, prefs):
 
     # Frame layout for the "Preview output" frame
     fl_preview_output = [
-        [sg.Multiline('', size=(60, 10), key='fld_preview')],
+        [sg.Multiline('', size=(60, 8), key='fld_preview')],
         [sg.Button('Preview', key='btn_preview'),
          sg.Button('Copy to clipboard', key='btn_copy_to_clipboard', disabled=True)]
     ]
@@ -99,13 +111,30 @@ def clicked_clear_text_input(window):
     window['fld_clipboard_content'].update('')
 
 
+def clicked_quote_text_checkbox(values, window):
+    """
+    Enables or disables the text fields for the quote and escape char
+    when the user clicked the "Quote text" checkbox.
+
+    Args:
+        window (:obj:`PySimpleGUI.Window`): The window where the action should be performed.
+        values (dict): The values dictionary returned by the windows.read() method.
+    """
+    if values['chk_quote_text']:
+        window['fld_quote_char'].update(disabled=False)
+        window['fld_escape_char'].update(disabled=False)
+    else:
+        window['fld_quote_char'].update(disabled=True)
+        window['fld_escape_char'].update(disabled=True)
+
+
 def clicked_preset_item(window, values):
     """
     Updates the displayed transform settings according to the selected preset.
 
     Args:
         window (:obj:`PySimpleGUI.Window`): The window where the action should be performed.
-        values ():
+        values (dict): The values dictionary returned by the windows.read() method.
     """
     chosen_tsp = values['lbx_presets'][0]
     update_displayed_preset(window, chosen_tsp)
@@ -212,7 +241,7 @@ def move_selected_preset(window, direction):
         elif direction == MOVE_DIRECTION_DOWN:
             new_index = selected_idx + 1
 
-        lbx_items.insert(new_index,lbx_items.pop(selected_idx))
+        lbx_items.insert(new_index, lbx_items.pop(selected_idx))
         update_preset_listbox(window, lbx_items, new_index)
 
 
@@ -228,14 +257,27 @@ def clicked_show_preview(window, values):
 
     transform_settings = get_transform_settings(values)
     text_transformer = TextTransformer(transform_settings)
-    transformed_text = text_transformer.transform(text)
 
-    window['fld_preview'].update(transformed_text)
+    transformation_success = False
+    try:
+        transformed_text = text_transformer.transform(text)
+        transformation_success = True
+    except TextTransformerError as e:
+        errmsg = """ Please check your surrounding text. It seems to be invalid.\
+        A valid surrounding text must only contain the format code {{}} or {{0}}.\
+        
+        
+        Error message: {0}
+        """.format(str(e)).strip()
+        sg.popup_error(errmsg, title="Text transformation error")
 
-    if transformed_text == '':
-        window['btn_copy_to_clipboard'].update(disabled=True)
-    else:
-        window['btn_copy_to_clipboard'].update(disabled=False)
+    if transformation_success:
+        window['fld_preview'].update(transformed_text)
+
+        if transformed_text == '':
+            window['btn_copy_to_clipboard'].update(disabled=True)
+        else:
+            window['btn_copy_to_clipboard'].update(disabled=False)
 
 
 def clicked_copy_to_clipboard(values):
@@ -258,13 +300,30 @@ def show_dialog_add_preset():
     """
     fl_preset_options = [
         [sg.Text('Name', size=(9, 1)), sg.InputText(default_text='', key='preset_name')],
-        [sg.Text('Prefix', size=(9, 1)), sg.InputText(default_text='', key='prefix')],
-        [sg.Text('Suffix', size=(9, 1)), sg.InputText(default_text='', key='suffix')],
-        [sg.Text('Delimiter', size=(9, 1)), sg.InputText(default_text='', key='delimiter')],
-        [sg.Checkbox('Line up', default=False, key='chk_line_up')],
-        [sg.Checkbox('Quote text', default=False, key='chk_quote_text'),
-         sg.Text('Quote char'), sg.InputText(default_text='', size=(5, 1), key='fld_quote_char'),
-         sg.Text('Escape char'), sg.InputText(default_text='', size=(5, 1), key='fld_escape_char')]
+        [sg.Text('Prefix', size=(9, 1)),
+         sg.InputText(default_text='',
+                      key='prefix',
+                      size=(5, 1)),
+         sg.Checkbox('Line up', default=False, key='chk_line_up')],
+        [sg.Text('Suffix', size=(9, 1)),
+         sg.InputText(default_text='',
+                      key='suffix', size=(5, 1)),
+         sg.Checkbox('Quote text',
+                     default=False,
+                     key='chk_quote_text',
+                     enable_events=True)],
+        [sg.Text('Delimiter', size=(9, 1)),
+         sg.InputText(default_text='',
+                      key='delimiter', size=(5, 1)),
+         sg.Text('Quote char'), sg.InputText(default_text='',
+                                             size=(5, 1),
+                                             key='fld_quote_char'),
+         sg.Text('Escape char'), sg.InputText(default_text='',
+                                              size=(5, 1),
+                                              key='fld_escape_char')
+         ],
+        [sg.Text('Surrounding text')],
+        [sg.Multiline('', size=(55, 3), key='fld_surrounding_text')]
     ]
 
     layout = [
@@ -338,6 +397,7 @@ def update_displayed_preset(window, chosen_tsp):
     window['chk_quote_text'].update(chosen_tsp.transform_settings.quote_text)
     window['fld_quote_char'].update(chosen_tsp.transform_settings.quote_char)
     window['fld_escape_char'].update(chosen_tsp.transform_settings.escape_char)
+    window['fld_surrounding_text'].update(chosen_tsp.transform_settings.surrounding_text)
 
 
 def get_transform_settings(values):
@@ -355,7 +415,8 @@ def get_transform_settings(values):
     quote_text = values['chk_quote_text']
     quote_char = values['fld_quote_char']
     escape_char = values['fld_escape_char']
+    surrounding_text = values['fld_surrounding_text']
     transform_settings = TransformSettings(prefix=prefix, suffix=suffix, delimiter=delimiter, line_up=line_up,
                                            quote_text=quote_text, quote_char=quote_char,
-                                           escape_char=escape_char)
+                                           escape_char=escape_char, surrounding_text=surrounding_text)
     return transform_settings
