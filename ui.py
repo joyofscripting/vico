@@ -397,7 +397,7 @@ def update_displayed_preset(window, chosen_tsp):
     window['chk_quote_text'].update(chosen_tsp.transform_settings.quote_text)
     window['fld_quote_char'].update(chosen_tsp.transform_settings.quote_char)
     window['fld_escape_char'].update(chosen_tsp.transform_settings.escape_char)
-    window['fld_surrounding_text'].update(chosen_tsp.transform_settings.surrounding_text)
+    window['fld_surrounding_text'].update(chosen_tsp.transform_settings.surrounding_text or '')
 
 
 def get_transform_settings(values):
