@@ -68,7 +68,8 @@ def prepare_main_window(window_title, prefs):
     fl_preview_output = [
         [sg.Multiline('', size=(60, 8), key='fld_preview')],
         [sg.Button('Preview', key='btn_preview'),
-         sg.Button('Copy to clipboard', key='btn_copy_to_clipboard', disabled=True)]
+         sg.Button('Copy to clipboard', key='btn_copy_to_clipboard', disabled=True),
+         sg.Text('', key='txt_prv_count_lines')]
     ]
 
     # Final layout for the main window
@@ -273,6 +274,9 @@ def clicked_show_preview(window, values):
 
     if transformation_success:
         window['fld_preview'].update(transformed_text)
+        count_lines = len(transformed_text.splitlines())
+        txt_count_lines = "(preview contains {0} line(s) of text)".format(count_lines)
+        window['txt_prv_count_lines'].update(txt_count_lines)
 
         if transformed_text == '':
             window['btn_copy_to_clipboard'].update(disabled=True)

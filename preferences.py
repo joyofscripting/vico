@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from pathlib import Path
 from teksto import TransformSettings, TransformSettingsPreset
 
 
@@ -28,15 +29,7 @@ class VicoPreferences(object):
         """
         Returns the path of the file where the user preferences are saved.
         """
-        if getattr(sys, 'frozen', False):
-            # If the application is run as a bundle, the PyInstaller bootloader
-            # extends the sys module by a flag frozen=True and sets the app
-            # path into variable _MEIPASS'.
-            application_path = os.path.dirname(sys._MEIPASS)
-        else:
-            application_path = os.path.dirname(os.path.abspath(__file__))
-
-        prefs_filepath = os.path.join(application_path, 'vico_settings.json')
+        prefs_filepath = os.path.expandvars("%appdata%/vico/vico_settings.json")
         return prefs_filepath
 
     @property
@@ -105,5 +98,9 @@ class VicoPreferences(object):
         """
         prefs_dict = {'selected_preset_index': self.selected_preset_index,
                       'presets': [preset.to_dict() for preset in self.presets]}
-        with open(self.prefs_filepath, "w") as prefs_file:
+        
+        output_file = Path(self.prefs_filepath)
+        output_file.parent.mkdir(exist_ok=True, parents=True)
+        
+        with open(output_file, "w") as prefs_file:
             json.dump(prefs_dict, prefs_file, indent=4)
