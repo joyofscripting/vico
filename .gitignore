@@ -3,3 +3,4 @@ vico_settings.json
 node_modules/
 output/
 venv/
+__pychache__/

@@ -55,6 +55,10 @@ Currently vico trims whitespace from every line. So don't be surprised about tha
 
 ## History
 
+## Version 1.0.2 (2023-08-22)
+* The preferences file is now located in a place where it does not get deleted frequently
+* Preview area now displays the count of lines
+
 ### Version 1.0.1 (2022-09-21)
 * Now you can also include a surrounding text in presets
 
