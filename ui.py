@@ -321,10 +321,12 @@ def show_dialog_add_preset():
                       key='delimiter', size=(5, 1)),
          sg.Text('Quote char'), sg.InputText(default_text='',
                                              size=(5, 1),
-                                             key='fld_quote_char'),
+                                             key='fld_quote_char',
+                                             disabled=True),
          sg.Text('Escape char'), sg.InputText(default_text='',
                                               size=(5, 1),
-                                              key='fld_escape_char')
+                                              key='fld_escape_char',
+                                              disabled=True)
          ],
         [sg.Text('Surrounding text')],
         [sg.Multiline('', size=(55, 3), key='fld_surrounding_text')]
@@ -341,7 +343,11 @@ def show_dialog_add_preset():
 
     while True:
         event, values = window.read()
-        if event == 'btn_save_preset':
+        print(event)
+        print(values)
+        if event == 'chk_quote_text':
+            clicked_quote_text_checkbox(values, window)
+        elif event == 'btn_save_preset':
             if not values['preset_name']:
                 sg.popup_ok("Please provide a preset name.")
                 continue
