@@ -67,6 +67,10 @@ def main():
         if event == 'btn_copy_to_clipboard':
             ui.clicked_copy_to_clipboard(values)
 
+        # User typed in the clipboard content text input field
+        if event == 'fld_clipboard_content':
+            ui.typed_clipboard_content(window, values)
+
     window.close()
 
 

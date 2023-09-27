@@ -21,9 +21,10 @@ def prepare_main_window(window_title, prefs):
 
     # Frame layout for the "Text input" frame
     fl_text_input = [
-        [sg.Multiline(clipboard_content, size=(60, 8), key='fld_clipboard_content')],
+        [sg.Multiline(clipboard_content, size=(60, 8), key='fld_clipboard_content', enable_events=True)],
         [sg.Button('Copy from clipboard', key='btn_copy_from_clipboard'),
-         sg.Button('Clear', key='btn_clear_text_input')]
+         sg.Button('Clear', key='btn_clear_text_input'),
+         sg.Text('', key='txt_input_count_lines')]
     ]
 
     # Frame layout for the "Transform options" frame
@@ -87,6 +88,8 @@ def prepare_main_window(window_title, prefs):
                                  scroll_to_index=prefs.selected_preset_index)
     # Updating the UI to display the values of the chosen preset
     update_displayed_preset(window, prefs.selected_preset)
+    # Updating the label showing the count of lines in the text input field
+    update_count_lines(window, clipboard_content)
 
     return window
 
@@ -100,6 +103,7 @@ def clicked_copy_from_clipboard(window):
     """
     clipboard_content = pyperclip.paste()
     window['fld_clipboard_content'].update(clipboard_content)
+    update_count_lines(window, clipboard_content)
 
 
 def clicked_clear_text_input(window):
@@ -110,6 +114,20 @@ def clicked_clear_text_input(window):
         window (:obj:`PySimpleGUI.Window`): The window where the action should be performed.
     """
     window['fld_clipboard_content'].update('')
+    update_count_lines(window, '')
+
+
+def update_count_lines(window, text):
+    """
+    Updates the label showing the count of lines of the input text.
+
+    Args:
+        window (:obj:`PySimpleGUI.Window`): The window where the action should be performed.
+        text (str): The input text.
+    """
+    count_text_lines = get_count_text_lines(text)
+    txt_count_lines = "(input contains {0} line(s))".format(count_text_lines)
+    window['txt_input_count_lines'].update(txt_count_lines)
 
 
 def clicked_quote_text_checkbox(values, window):
@@ -198,7 +216,7 @@ def is_valid_up_movement(direction, index):
 
     Returns:
         Returns True if the direction equals MOVE_DIRECTION_UP and the index is not equal to 0.
-        Otherwise it returns False.
+        Otherwise, it returns False.
     """
     if direction == MOVE_DIRECTION_UP and index != 0:
         return True
@@ -218,7 +236,7 @@ def is_valid_down_movement(direction, index, items):
     Returns:
         Returns True if the direction equals MOVE_DIRECTION_DOWN and the index is smaller
         than the length of items minus 1.
-        Otherwise it returns False.
+        Otherwise, it returns False.
     """
     if direction == MOVE_DIRECTION_DOWN and index < len(items) - 1:
         return True
@@ -261,7 +279,7 @@ def clicked_show_preview(window, values):
 
     transformation_success = False
     try:
-        transformed_text = text_transformer.transform(text)
+        transform_result = text_transformer.transform(text)
         transformation_success = True
     except TextTransformerError as e:
         errmsg = """ Please check your surrounding text. It seems to be invalid.\
@@ -273,12 +291,11 @@ def clicked_show_preview(window, values):
         sg.popup_error(errmsg, title="Text transformation error")
 
     if transformation_success:
-        window['fld_preview'].update(transformed_text)
-        count_lines = len(transformed_text.splitlines())
-        txt_count_lines = "(preview contains {0} line(s) of text)".format(count_lines)
+        window['fld_preview'].update(transform_result['transformed_text'])
+        txt_count_lines = "(preview contains {0} text items(s)".format(transform_result['count_text_items'])
         window['txt_prv_count_lines'].update(txt_count_lines)
 
-        if transformed_text == '':
+        if transform_result['transformed_text'] == '':
             window['btn_copy_to_clipboard'].update(disabled=True)
         else:
             window['btn_copy_to_clipboard'].update(disabled=False)
@@ -292,6 +309,19 @@ def clicked_copy_to_clipboard(values):
         values (dict): The values dictionary returned by the windows.read() method.
     """
     pyperclip.copy(values['fld_preview'])
+
+
+def typed_clipboard_content(window, values):
+    """
+    Reacts on the user typing in the text input field of the "Text input" frame.
+    Currently, it only updates the label showing the count of lines of the input text.
+
+    Args:
+        window (:obj:`PySimpleGUI.Window`): The window where the action should be performed.
+        values (dict): The values dictionary returned by the windows.read() method.
+    """
+    text = values['fld_clipboard_content']
+    update_count_lines(window, text)
 
 
 def show_dialog_add_preset():
@@ -343,8 +373,6 @@ def show_dialog_add_preset():
 
     while True:
         event, values = window.read()
-        print(event)
-        print(values)
         if event == 'chk_quote_text':
             clicked_quote_text_checkbox(values, window)
         elif event == 'btn_save_preset':
@@ -409,6 +437,9 @@ def update_displayed_preset(window, chosen_tsp):
     window['fld_escape_char'].update(chosen_tsp.transform_settings.escape_char)
     window['fld_surrounding_text'].update(chosen_tsp.transform_settings.surrounding_text or '')
 
+    values = {'chk_quote_text': chosen_tsp.transform_settings.quote_text}
+    clicked_quote_text_checkbox(values, window)
+
 
 def get_transform_settings(values):
     """
@@ -430,3 +461,24 @@ def get_transform_settings(values):
                                            quote_text=quote_text, quote_char=quote_char,
                                            escape_char=escape_char, surrounding_text=surrounding_text)
     return transform_settings
+
+
+def get_count_text_lines(text):
+    """
+    Returns the count of lines in a given text.
+    If the given input is None or not of type str the value 0 is returned.
+
+    Args:
+        text (str): The text where the count of lines should be calculated.
+
+    Returns:
+        The count of lines in the given text as a number.
+    """
+    if not text:
+        return 0
+
+    if type(text) is not str:
+        return 0
+
+    count_text_lines = len(text.strip().splitlines())
+    return count_text_lines

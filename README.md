@@ -55,6 +55,9 @@ Currently vico trims whitespace from every line. So don't be surprised about tha
 
 ## History
 
+### Version 1.0.4 (2023-09-27)
+* Now displays the count of lines found in the input text and the count of text items in the transformed text
+
 ### Version 1.0.3 (2023-09-25)
 * Fixed a bug in the preset dialog
 
