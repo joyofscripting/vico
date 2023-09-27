@@ -241,7 +241,8 @@ class TextTransformer(object):
             text (str): The text to be transformed.
 
         Returns:
-            The transformed text.
+            A dictionary containing the transformed text (key: 'transformed_text')
+            and the count of text items (key: 'count_text_items').
 
         Raises:
             TypeError: If text is not of type str.
@@ -264,10 +265,12 @@ class TextTransformer(object):
         lines = self._place_prefix(lines)
         lines = self._place_suffix(lines)
         lines = self._place_delimiter(lines)
+        count_text_items = len(lines)
         transformed_text = self._concatenate(lines)
         transformed_text = self._surroundwithtext(transformed_text)
 
-        return transformed_text
+        dict = {'transformed_text': transformed_text, 'count_text_items': count_text_items}
+        return dict
 
     def _quote_text(self, text):
         """
