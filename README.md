@@ -11,7 +11,7 @@ Tim O'Reilly
 
 ***
 
-botelo currently supports:
+vico currently supports:
 
 * Python 3.7.8 (and higher)
 * pyperclip 1.8.2 (and higher)
@@ -51,9 +51,12 @@ The presets are loaded during application start and saved when the application q
 
 
 ## Yes, vico trims every line!
-Currently vico trims whitespace from every line. So don't be surprised about that. Maybe I will make trimming optional in the future. Who knows.
+Currently, vico trims whitespace from every line. So don't be surprised about that. Maybe I will make trimming optional in the future. Who knows.
 
 ## History
+
+### Version 1.0.5 (2023-09-28)
+* The preferences file is now saved in a platform specific location for Windows, macOS and Linux
 
 ### Version 1.0.4 (2023-09-27)
 * Now displays the count of lines found in the input text and the count of text items in the transformed text

@@ -1,6 +1,6 @@
 import os
-import sys
 import json
+import platform
 from pathlib import Path
 from teksto import TransformSettings, TransformSettingsPreset
 
@@ -29,7 +29,17 @@ class VicoPreferences(object):
         """
         Returns the path of the file where the user preferences are saved.
         """
-        prefs_filepath = os.path.expandvars("%appdata%/vico/vico_settings.json")
+        current_platform = platform.system()
+
+        if current_platform == 'Windows':
+            prefs_filepath = os.path.expandvars("%appdata%/vico/vico_settings.json")
+        elif current_platform == 'Darwin':
+            prefs_filepath = os.path.expanduser("~/Library/Preferences/vico_settings.json")
+        elif current_platform == 'Linux':
+            prefs_filepath = os.path.expanduser("~/.config/vico_settings.json")
+        else:
+            prefs_filepath = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'vico_settings.json')
+
         return prefs_filepath
 
     @property
