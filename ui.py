@@ -126,7 +126,7 @@ def update_count_lines(window, text):
         text (str): The input text.
     """
     count_text_lines = get_count_text_lines(text)
-    txt_count_lines = "(input contains {0} line(s))".format(count_text_lines)
+    txt_count_lines = "Input contains {0} line(s)".format(count_text_lines)
     window['txt_input_count_lines'].update(txt_count_lines)
 
 
@@ -292,7 +292,7 @@ def clicked_show_preview(window, values):
 
     if transformation_success:
         window['fld_preview'].update(transform_result['transformed_text'])
-        txt_count_lines = "(preview contains {0} text items(s)".format(transform_result['count_text_items'])
+        txt_count_lines = "Preview contains {0} text items(s)".format(transform_result['count_text_items'])
         window['txt_prv_count_lines'].update(txt_count_lines)
 
         if transform_result['transformed_text'] == '':
