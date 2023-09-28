@@ -248,7 +248,8 @@ class TextTransformer(object):
             TypeError: If text is not of type str.
         """
         if not text:
-            return text
+            dict = {'transformed_text': text, 'count_text_items': 0}
+            return dict
 
         if type(text) is not str:
             msg = "Given value is not of type str, but of type {0}".format(type(text))

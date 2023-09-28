@@ -291,6 +291,7 @@ def clicked_show_preview(window, values):
         sg.popup_error(errmsg, title="Text transformation error")
 
     if transformation_success:
+        print(transform_result)
         window['fld_preview'].update(transform_result['transformed_text'])
         txt_count_lines = "Preview contains {0} text items(s)".format(transform_result['count_text_items'])
         window['txt_prv_count_lines'].update(txt_count_lines)
